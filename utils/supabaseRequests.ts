@@ -1,6 +1,17 @@
+import { type } from "os";
 import { supabaseClient } from "./supabaseClient";
 
-export const getSubscriptions = async ({ userId, token }) => {
+type subscriptionsParams = {
+  userId: string | null | undefined;
+  token: string | null;
+};
+export const getSubscriptions = async ({
+  userId,
+  token,
+}: subscriptionsParams) => {
+  if (!userId || !token) {
+    throw new Error("Missing userId or token");
+  }
   const supabase = await supabaseClient(token);
   const { data: subscriptions, error } = await supabase
     .from("subscriptions")

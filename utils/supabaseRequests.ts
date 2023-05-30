@@ -1,4 +1,3 @@
-import { type } from "os";
 import { supabaseClient } from "./supabaseClient";
 
 type subscriptionsParams = {

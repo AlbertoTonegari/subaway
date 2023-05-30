@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "update-types": "npx supabase gen types typescript --project-id gdbbwtadqxevahantspy --schema public > types/supabase.ts"
-
   },
   "dependencies": {
     "@clerk/nextjs": "^4.19.0",
@@ -17,6 +16,7 @@
     "@types/react": "18.2.7",
     "@types/react-dom": "18.2.4",
     "autoprefixer": "10.4.14",
+    "daisyui": "^2.52.0",
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.4",
     "next": "13.4.4",

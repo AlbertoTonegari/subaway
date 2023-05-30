@@ -16,7 +16,7 @@ export const getSubscriptions = async ({
     .from("subscriptions")
     .select("*")
     .eq("user_id", userId);
-
+  console.log("subscriptions", subscriptions);
   if (error) {
     throw error;
   }

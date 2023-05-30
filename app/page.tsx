@@ -2,9 +2,19 @@
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { getSubscriptions } from "../utils/supabaseRequests";
-import { Database } from "../types/supabase";
+
+interface Subscription {
+  created_at: string | null;
+  description: string | null;
+  id: string;
+  link: string | null;
+  name: string;
+  updated_at: string | null;
+  user_id: string;
+}
+
 export default function Home() {
-  const [subscriptions, setSubscriptions] = useState<any>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
   const { userId, getToken } = useAuth();
 
@@ -12,15 +22,18 @@ export default function Home() {
     const loadSubscriptions = async () => {
       const token = await getToken({ template: "supabase" });
       const subscriptions = await getSubscriptions({ userId, token });
-      console.log({ subscriptions });
       setSubscriptions(subscriptions);
     };
-    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-  }, []);
+    loadSubscriptions();
+  }, [getToken, userId]);
 
   return (
     <main>
-      <h1 className="bg-red">Hello: {userId}</h1>
+      <ul>
+        {subscriptions.map((subscription: Subscription) => (
+          <li key={subscription.id}>{subscription.name}</li>
+        ))}
+      </ul>
       <UserButton />
     </main>
   );

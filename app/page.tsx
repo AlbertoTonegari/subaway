@@ -1,6 +1,9 @@
-import { Header } from "@/components";
-import Footer from "@/components/footer/footer";
+"use client";
+
 import Hero from "@/components/hero/hero";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface Subscription {
   created_at: string | null;
@@ -13,6 +16,19 @@ interface Subscription {
 }
 
 export default function Home() {
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      return router.push("/dashboard");
+    }
+  }, [isSignedIn, router]);
+
+  if (isSignedIn) {
+    return null;
+  }
+
   return (
     <>
       <Hero />

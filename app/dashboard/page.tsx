@@ -21,20 +21,23 @@ export default function Home() {
   useEffect(() => {
     const loadSubscriptions = async () => {
       const token = await getToken({ template: "supabase" });
-      const subscriptions = await getSubscriptions({ userId, token });
-      setSubscriptions(subscriptions);
+      try {
+        const subscriptions = await getSubscriptions({ userId, token });
+        setSubscriptions(subscriptions);
+      } catch (error) {
+        console.log(error);
+      }
     };
     loadSubscriptions();
   }, [getToken, userId]);
 
   return (
-    <main>
+    <div>
       <ul>
         {subscriptions.map((subscription: Subscription) => (
           <li key={subscription.id}>{subscription.name}</li>
         ))}
       </ul>
-      <UserButton />
-    </main>
+    </div>
   );
 }

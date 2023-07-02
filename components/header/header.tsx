@@ -1,12 +1,17 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { themeChange } from "theme-change";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const Header = () => {
+  const { isSignedIn } = useAuth();
   const [checked, setChecked] = useState(
-    localStorage.getItem("theme") === "dark" ? true : false
+    typeof window !== "undefined" && localStorage?.getItem("theme") === "dark"
+      ? true
+      : false
   );
   useEffect(() => {
     themeChange(false);
@@ -20,7 +25,7 @@ const Header = () => {
   };
 
   return (
-    <header className="navbar bg-base-100">
+    <header className="navbar bg-base-100 p-2 md:p-4">
       <input
         data-toggle-theme="dark,light"
         data-act-class="ACTIVECLASS"
@@ -30,10 +35,24 @@ const Header = () => {
         onChange={handleThemeChange}
       />
       <div className="flex-1">
-        <a className="btn btn-ghost normal-case text-xl">daisyUI</a>
+        <Link
+          href="/"
+          className="btn btn-ghost normal-case text-base md:text-lg"
+        >
+          subaway
+        </Link>
       </div>
-
-      <UserButton afterSignOutUrl="/" />
+      <div className="flex space-x-2">
+        {!isSignedIn && (
+          <Link
+            href="https://caring-ocelot-51.accounts.dev/sign-in"
+            className="btn btn-primary normal-case text-base md:text-lg"
+          >
+            Sign in
+          </Link>
+        )}
+        <UserButton afterSignOutUrl="/" />
+      </div>
     </header>
   );
 };

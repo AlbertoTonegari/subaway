@@ -15,7 +15,7 @@ const Footer = () => {
         </svg>
         <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
       </div>
-      <div>
+      {/* <div>
         <div className="grid grid-flow-col gap-4">
           <a>
             <svg
@@ -51,7 +51,7 @@ const Footer = () => {
             </svg>
           </a>
         </div>
-      </div>
+      </div> */}
     </footer>
   );
 };

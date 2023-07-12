@@ -13,6 +13,7 @@ const Header = () => {
       ? true
       : false
   );
+
   useEffect(() => {
     themeChange(false);
     // 👆 false parameter is required for react project
@@ -34,7 +35,7 @@ const Header = () => {
         checked={checked}
         onChange={handleThemeChange}
       />
-      <div className="flex-1">
+      <div className="flex-1 ml-2">
         <Link
           href="/"
           className="btn btn-ghost normal-case text-base md:text-lg"

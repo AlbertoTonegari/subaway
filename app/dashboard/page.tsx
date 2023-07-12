@@ -2,6 +2,7 @@
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { getSubscriptions } from "../../utils/supabaseRequests";
+import { Card } from "@/components";
 
 interface Subscription {
   created_at: string | null;
@@ -32,12 +33,13 @@ export default function Home() {
   }, [getToken, userId]);
 
   return (
-    <div>
+    <>
+      <Card />
       <ul>
         {subscriptions.map((subscription: Subscription) => (
           <li key={subscription.id}>{subscription.name}</li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }

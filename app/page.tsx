@@ -1,7 +1,7 @@
 "use client";
 
 import Hero from "@/components/hero/hero";
-import { useAuth } from "@clerk/nextjs";
+import { SignedOut, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -25,13 +25,11 @@ export default function Home() {
     }
   }, [isSignedIn, router]);
 
-  if (isSignedIn) {
-    return null;
-  }
-
   return (
     <>
-      <Hero />
+      <SignedOut>
+        <Hero />
+      </SignedOut>
     </>
   );
 }

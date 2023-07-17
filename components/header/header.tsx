@@ -3,7 +3,8 @@
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { themeChange } from "theme-change";
-import { usePathname } from "next/navigation";
+import { SignInButton } from "@clerk/nextjs";
+
 import Link from "next/link";
 
 const Header = () => {
@@ -16,6 +17,11 @@ const Header = () => {
 
   useEffect(() => {
     themeChange(false);
+    const isTheme = localStorage?.getItem("theme");
+    if (!isTheme) {
+      localStorage.setItem("theme", "light");
+      themeChange(false);
+    }
     // 👆 false parameter is required for react project
   }, []);
 
@@ -45,12 +51,11 @@ const Header = () => {
       </div>
       <div className="flex space-x-2">
         {!isSignedIn && (
-          <Link
-            href="https://caring-ocelot-51.accounts.dev/sign-in"
-            className="btn btn-primary normal-case text-base md:text-lg"
-          >
-            Sign in
-          </Link>
+          <SignInButton mode="modal">
+            <button className="btn btn-primary normal-case text-base md:text-lg">
+              Sign In
+            </button>
+          </SignInButton>
         )}
         <UserButton afterSignOutUrl="/" />
       </div>

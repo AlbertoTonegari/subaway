@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useEffect } from "react";
 import { Tooltip } from "react-tooltip";
 
 type ModalProps = {
@@ -10,9 +11,18 @@ type ModalProps = {
 };
 
 const Modal = ({ isOpen, setIsOpen, children }: ModalProps) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [isOpen]);
+  if (!isOpen) return null;
+
   return (
-    <dialog open={isOpen} className="modal modal-top sm:modal-middle">
-      <form method="dialog" className="modal-box">
+    <div className="fixed inset-0 flex justify-center items-center">
+      <div className="modal-box">
         <button
           data-tooltip-id="x-tooltip"
           data-tooltip-content="Close modal"
@@ -25,19 +35,20 @@ const Modal = ({ isOpen, setIsOpen, children }: ModalProps) => {
           <X />
         </button>
         {children}
-      </form>
-      <form method="dialog" className="modal-backdrop bg-black opacity-50">
+      </div>
+      <div className="modal-backdrop fixed inset-0 bg-black opacity-50">
         <button
           type="button"
+          className="cursor-default"
           onClick={() => {
             setIsOpen(false);
           }}
         >
           close
         </button>
-      </form>
+      </div>
       <Tooltip id="x-tooltip" />
-    </dialog>
+    </div>
   );
 };
 

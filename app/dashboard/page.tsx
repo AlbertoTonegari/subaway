@@ -5,6 +5,9 @@ import { getSubscriptions } from "../../utils/supabaseRequests";
 import { Card, Modal } from "@/components";
 import { PlusCircle } from "lucide-react";
 import { Tooltip } from "react-tooltip";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 interface Subscription {
   created_at: string | null;
@@ -16,11 +19,33 @@ interface Subscription {
   user_id: string;
 }
 
+const schema = yup.object({
+  name: yup.string().required(),
+  description: yup.string().required(),
+  link: yup.string(),
+  image: yup.string(),
+});
+
+type FormData = yup.InferType<typeof schema>;
+
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const { userId, isSignedIn, getToken } = useAuth();
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(true);
+  const { userId, getToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+    clearErrors,
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  });
+
+  const onSubmit = (data: FormData) => {};
+  console.log("Is open", isOpen);
   useEffect(() => {
     const loadSubscriptions = async () => {
       const token = await getToken({ template: "supabase" });
@@ -30,11 +55,21 @@ export default function Home() {
         setSubscriptions(subscriptions);
       } catch (error) {
         console.log(error);
+      } finally {
+        setSubscriptionsLoading(false);
       }
     };
     loadSubscriptions();
   }, [getToken, userId]);
 
+  if (subscriptionsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <span className="loading loading-ring loading-lg"></span>
+      </div>
+    );
+  }
+  console.log(getValues());
   return (
     <>
       <div className="flex justify-center items-center">
@@ -48,8 +83,43 @@ export default function Home() {
         >
           <PlusCircle />
         </button>
-        <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-          <h1>MOdal</h1>
+        <Modal
+          isOpen={isOpen}
+          setIsOpen={(value) => {
+            if (!value) clearErrors();
+            setIsOpen(value);
+          }}
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <input
+              placeholder="Add name..."
+              className="mt-8 input input-bordered w-full"
+              {...register("name")}
+            />
+            <p className="text-error">{errors.name?.message}</p>
+
+            <textarea
+              id="description"
+              placeholder="Add description..."
+              className="textarea textarea-bordered resize-none w-full"
+              {...register("description")}
+            />
+
+            <input
+              type="file"
+              accept="image/*"
+              className="file-input"
+              onChange={(e) => {
+                e.stopPropagation();
+              }}
+            />
+
+            <p className="text-error">{errors.description?.message}</p>
+            <button className="btn btn-primary btn-block normal-case">
+              <span className="loading loading-spinner"></span>
+              Add record
+            </button>
+          </form>
         </Modal>
       </div>
       {subscriptions.length === 0 ? (

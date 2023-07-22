@@ -1,15 +1,21 @@
+"use client";
+
 import { X } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 type ModalProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  children?: React.ReactNode;
 };
 
-const Modal = ({ isOpen, setIsOpen }: ModalProps) => {
+const Modal = ({ isOpen, setIsOpen, children }: ModalProps) => {
   return (
     <dialog open={isOpen} className="modal modal-top sm:modal-middle">
       <form method="dialog" className="modal-box">
         <button
+          data-tooltip-id="x-tooltip"
+          data-tooltip-content="Close modal"
           type="button"
           onClick={() => {
             setIsOpen(false);
@@ -18,8 +24,7 @@ const Modal = ({ isOpen, setIsOpen }: ModalProps) => {
         >
           <X />
         </button>
-        <h3 className="font-bold text-lg">Hello!</h3>
-        <p className="py-4">Press ESC key or click outside to close</p>
+        {children}
       </form>
       <form method="dialog" className="modal-backdrop bg-black opacity-50">
         <button
@@ -31,6 +36,7 @@ const Modal = ({ isOpen, setIsOpen }: ModalProps) => {
           close
         </button>
       </form>
+      <Tooltip id="x-tooltip" />
     </dialog>
   );
 };

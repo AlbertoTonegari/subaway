@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getSubscriptions } from "../../utils/supabaseRequests";
 import { Card, Modal } from "@/components";
 import { PlusCircle } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 interface Subscription {
   created_at: string | null;
@@ -36,6 +37,21 @@ export default function Home() {
 
   return (
     <>
+      <div className="flex justify-center items-center">
+        <button
+          data-tooltip-id="add-subb"
+          data-tooltip-content="Add a subscription"
+          className="btn font-bold btn-base"
+          onClick={() => {
+            setIsOpen(true);
+          }}
+        >
+          <PlusCircle />
+        </button>
+        <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+          <h1>MOdal</h1>
+        </Modal>
+      </div>
       {subscriptions.length === 0 ? (
         <div className="font-bold text-center p-8">
           <h1>You have no subscriptions</h1>
@@ -47,18 +63,8 @@ export default function Home() {
           ))}
         </ul>
       )}
-      <div className="flex justify-center items-center">
-        <button
-          className="btn font-bold btn-base"
-          onClick={() => {
-            setIsOpen(true);
-          }}
-        >
-          add
-          <PlusCircle />
-        </button>
-        <Modal isOpen={isOpen} setIsOpen={setIsOpen} />
-      </div>
+
+      <Tooltip id="add-subb" className="opacity-1 bg-red-50" />
     </>
   );
 }

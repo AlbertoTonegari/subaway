@@ -2,7 +2,7 @@
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { getSubscriptions } from "../../utils/supabaseRequests";
-import { Card } from "@/components";
+import { Card, Modal } from "@/components";
 import { PlusCircle } from "lucide-react";
 
 interface Subscription {
@@ -18,11 +18,13 @@ interface Subscription {
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const { userId, isSignedIn, getToken } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const loadSubscriptions = async () => {
       const token = await getToken({ template: "supabase" });
       try {
+        if (!userId || !token) throw new Error("User not signed in");
         const subscriptions = await getSubscriptions({ userId, token });
         setSubscriptions(subscriptions);
       } catch (error) {
@@ -46,10 +48,16 @@ export default function Home() {
         </ul>
       )}
       <div className="flex justify-center items-center">
-        <button className="btn font-bold btn-base">
+        <button
+          className="btn font-bold btn-base"
+          onClick={() => {
+            setIsOpen(true);
+          }}
+        >
           add
           <PlusCircle />
         </button>
+        <Modal isOpen={isOpen} setIsOpen={setIsOpen} />
       </div>
     </>
   );

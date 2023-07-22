@@ -1,9 +1,16 @@
 import { supabaseClient } from "./supabaseClient";
 
 type subscriptionsParams = {
-  userId: string | null | undefined;
-  token: string | null;
+  userId: string;
+  token: string;
 };
+
+type subscription = {
+  userId: string;
+  token: string;
+  description: string;
+};
+
 export const getSubscriptions = async ({
   userId,
   token,
@@ -22,3 +29,5 @@ export const getSubscriptions = async ({
 
   return subscriptions;
 };
+
+export const createSubscription = async ({}) => {};

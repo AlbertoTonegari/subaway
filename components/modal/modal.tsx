@@ -21,7 +21,7 @@ const Modal = ({ isOpen, setIsOpen, children }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center">
+    <div className="fixed inset-0 flex justify-center items-center z-50">
       <div className="modal-box">
         <button
           data-tooltip-id="x-tooltip"

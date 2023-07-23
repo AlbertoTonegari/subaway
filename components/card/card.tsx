@@ -1,22 +1,64 @@
 "use client";
 import Image from "next/image";
+import { Database } from "@/types/supabase";
+import { Edit, Trash } from "lucide-react";
 
-const Card = () => {
+interface CardProps {
+  image: string;
+  title: string;
+  description: string;
+  link: string;
+  date: string;
+  currency: string;
+}
+
+const Card = ({
+  title,
+  description,
+  link,
+  image,
+  date,
+  currency,
+}: CardProps) => {
   return (
-    <div className="card w-96 glass">
+    <div className="card w-96 shadow-xl p-2">
       <figure>
         <Image
-          width={760}
-          height={427}
-          src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2148&q=80"
+          width={200}
+          height={200}
+          className="rounded-xl"
+          src={image ? image : `https://robohash.org/${title}`}
           alt="logo"
         />
       </figure>
       <div className="card-body">
-        <h2 className="card-title">Life hack</h2>
-        <p className="text-neutral">How to park your car at your garage?</p>
-        <div className="card-actions justify-end">
-          <button className="btn btn-primary">Learn now!</button>
+        <h2 className="card-title">{title}</h2>
+        <p className="text-neutral">Description: {description}</p>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href={link}
+          className="text-neutral"
+        >
+          Link: {link}
+        </a>
+        <p className="text-neutral">Registered: {date}</p>
+        <p className="text-neutral">Currency: {currency}</p>
+        <div className="card-actions flex justify-between">
+          <button
+            data-tooltip-id="delete"
+            data-tooltip-content="Delete subscription"
+            className="btn text-error"
+          >
+            <Trash />
+          </button>
+          <button
+            data-tooltip-id="edit"
+            data-tooltip-content="Edit subscription"
+            className="btn text-info"
+          >
+            <Edit />
+          </button>
         </div>
       </div>
     </div>

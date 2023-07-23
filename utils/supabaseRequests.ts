@@ -9,9 +9,14 @@ type subscriptionCreateParams = {
   userId: string;
   token: string;
   subscription: {
-    name: string;
+    title: string;
     link: string;
     description: string;
+    image: string;
+    period: string;
+    date: string;
+    amount: number;
+    currency: string;
   };
 };
 
@@ -47,8 +52,14 @@ export const createSubscription = async ({
     .from("subscriptions")
     .insert({
       user_id: userId,
-      name: subscription.name,
+      title: subscription.title,
+      amount: subscription.amount,
+      currency: subscription.currency,
+      description: subscription.description,
       link: subscription.link,
+      image: subscription.image,
+      period: subscription.period,
+      date: subscription.date,
     });
   if (error) {
     throw error;

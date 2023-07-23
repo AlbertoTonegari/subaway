@@ -11,32 +11,44 @@ export interface Database {
     Tables: {
       subscriptions: {
         Row: {
+          amount: number
           created_at: string | null
+          currency: string
+          date: string
           description: string | null
           id: string
           image: string | null
           link: string | null
-          name: string
+          period: string | null
+          title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          amount: number
           created_at?: string | null
+          currency: string
+          date: string
           description?: string | null
           id?: string
           image?: string | null
           link?: string | null
-          name: string
+          period?: string | null
+          title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          amount?: number
           created_at?: string | null
+          currency?: string
+          date?: string
           description?: string | null
           id?: string
           image?: string | null
           link?: string | null
-          name?: string
+          period?: string | null
+          title?: string
           updated_at?: string | null
           user_id?: string
         }

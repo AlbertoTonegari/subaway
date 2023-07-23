@@ -1,8 +1,15 @@
 "use client";
 import { UserButton, useAuth } from "@clerk/nextjs";
+import { v4 as uuidv4 } from "uuid";
 import { useEffect, useState } from "react";
-import { getSubscriptions } from "../../utils/supabaseRequests";
-import { Card, Modal } from "@/components";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import {
+  createSubscription,
+  getSubscriptions,
+} from "../../utils/supabaseRequests";
+import { Card, Modal, Select } from "@/components";
 import { PlusCircle } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { useForm } from "react-hook-form";
@@ -20,19 +27,26 @@ interface Subscription {
 }
 
 const schema = yup.object({
-  name: yup.string().required(),
-  description: yup.string().required(),
+  title: yup.string().required(),
+  date: yup.date().required().typeError("Date must be a valid date"),
+  period: yup.string().required(),
+  description: yup.string(),
   link: yup.string(),
-  image: yup.string(),
+  image: yup.mixed(),
+  amount: yup.number().required().typeError("Amount must be a number"),
+  currency: yup.string().required(),
 });
 
 type FormData = yup.InferType<typeof schema>;
 
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [createSubscriptionLoading, setCreateSubscriptionLoading] =
+    useState(false);
   const [subscriptionsLoading, setSubscriptionsLoading] = useState(true);
   const { userId, getToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [imageData, setImageData] = useState("");
 
   const {
     register,
@@ -40,12 +54,77 @@ export default function Home() {
     getValues,
     formState: { errors },
     clearErrors,
+    reset,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data: FormData) => {};
-  console.log("Is open", isOpen);
+  const onSubmit = async (data: FormData) => {
+    setCreateSubscriptionLoading(true);
+    const { title, description, link, image, date, period, amount, currency } =
+      data;
+    const selectedFile = image[0];
+
+    const getImageBase64 = (
+      file: File
+    ): Promise<string | ArrayBuffer | null> => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    let imageBase: string | ArrayBuffer | null = "";
+    if (selectedFile) {
+      imageBase = await getImageBase64(selectedFile);
+    }
+    const token = await getToken({ template: "supabase" });
+
+    try {
+      await createSubscription({
+        userId,
+        token,
+        subscription: {
+          title,
+          description,
+          amount,
+          currency,
+          link,
+          image: imageBase,
+          date,
+          period,
+        },
+      });
+
+      setSubscriptions((prev) => [
+        ...prev,
+        {
+          title,
+          description,
+          link,
+          date:
+            date.getFullYear() + "-" + date.getMonth() + "-" + date.getDay(),
+          period,
+          amount,
+          currency,
+          image: imageBase,
+          id: uuidv4(),
+          user_id: userId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      reset();
+    } catch (error) {
+      toast.error("Error creating subscription");
+    } finally {
+      setCreateSubscriptionLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadSubscriptions = async () => {
       const token = await getToken({ template: "supabase" });
@@ -54,7 +133,7 @@ export default function Home() {
         const subscriptions = await getSubscriptions({ userId, token });
         setSubscriptions(subscriptions);
       } catch (error) {
-        console.log(error);
+        toast.error("Error loading subscriptions");
       } finally {
         setSubscriptionsLoading(false);
       }
@@ -69,7 +148,7 @@ export default function Home() {
       </div>
     );
   }
-  console.log(getValues());
+
   return (
     <>
       <div className="flex justify-center items-center">
@@ -90,33 +169,90 @@ export default function Home() {
             setIsOpen(value);
           }}
         >
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <input
-              placeholder="Add name..."
-              className="mt-8 input input-bordered w-full"
-              {...register("name")}
-            />
-            <p className="text-error">{errors.name?.message}</p>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div>
+              <input
+                placeholder="Add name..."
+                className="mt-8 input input-bordered w-full"
+                {...register("title")}
+              />
+              <p className="text-error">{errors.title?.message}</p>
+            </div>
 
-            <textarea
-              id="description"
-              placeholder="Add description..."
-              className="textarea textarea-bordered resize-none w-full"
-              {...register("description")}
-            />
+            <div>
+              <textarea
+                placeholder="Add description..."
+                className="textarea textarea-bordered resize-none w-full mt-4"
+                {...register("description")}
+              />
+              <p className="text-error">{errors.description?.message}</p>
+            </div>
+
+            <div>
+              <textarea
+                placeholder="Add Link..."
+                className="textarea textarea-bordered resize-none w-full mt-2 mb-2"
+                {...register("link")}
+              />
+              <p className="text-error">{errors.link?.message}</p>
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="Add amount..."
+                className="w-full mb-4 p-4 rounded-md input-bordered input"
+                {...register("amount")}
+              />
+              <p className="text-error">{errors.amount?.message}</p>
+            </div>
+
+            <div>
+              <select
+                className="select w-full select-bordered mb-4"
+                {...register("currency")}
+              >
+                <option selected>€</option>
+                <option>$</option>
+              </select>
+
+              <p className="text-error">{errors.currency?.message}</p>
+            </div>
 
             <input
               type="file"
               accept="image/*"
-              className="file-input"
-              onChange={(e) => {
-                e.stopPropagation();
-              }}
+              className="file-input file-input-bordered w-full mt-2 mb-4"
+              {...register("image")}
             />
 
-            <p className="text-error">{errors.description?.message}</p>
-            <button className="btn btn-primary btn-block normal-case">
-              <span className="loading loading-spinner"></span>
+            <div>
+              <select
+                className="select w-full select-bordered mb-4"
+                {...register("period")}
+              >
+                <option selected>Monthly</option>
+                <option>Yearly</option>
+              </select>
+
+              <p className="text-error">{errors.period?.message}</p>
+            </div>
+
+            <div>
+              <input
+                type="date"
+                className="w-full mb-4 p-4 rounded-md input-bordered input"
+                {...register("date")}
+              />
+              <p className="text-error">{errors.date?.message}</p>
+            </div>
+
+            <button
+              disabled={createSubscriptionLoading}
+              className="btn btn-primary btn-block normal-case"
+            >
+              {createSubscriptionLoading && (
+                <span className="loading loading-spinner"></span>
+              )}
               Add record
             </button>
           </form>
@@ -127,14 +263,20 @@ export default function Home() {
           <h1>You have no subscriptions</h1>
         </div>
       ) : (
-        <ul>
+        <ul className="flex justify-center xl:justify-normal flex-wrap gap-4 mt-8 ">
           {subscriptions.map((subscription: Subscription) => (
-            <li key={subscription.id}>{subscription.name}</li>
+            <Card key={subscription.id} {...subscription} />
           ))}
         </ul>
       )}
 
-      <Tooltip id="add-subb" className="opacity-1 bg-red-50" />
+      <Tooltip id="add-subb" />
+      <Tooltip id="edit" />
+      <Tooltip id="delete" />
+      <ToastContainer
+        theme={localStorage.getItem("theme") ?? "light"}
+        position="bottom-right"
+      />
     </>
   );
 }

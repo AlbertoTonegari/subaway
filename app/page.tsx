@@ -1,7 +1,9 @@
 "use client";
-import { UserButton, useAuth } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
-import { getSubscriptions } from "../utils/supabaseRequests";
+
+import Hero from "@/components/hero/hero";
+import { SignedOut, useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface Subscription {
   created_at: string | null;
@@ -14,27 +16,20 @@ interface Subscription {
 }
 
 export default function Home() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
-  const { userId, getToken } = useAuth();
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const loadSubscriptions = async () => {
-      const token = await getToken({ template: "supabase" });
-      const subscriptions = await getSubscriptions({ userId, token });
-      setSubscriptions(subscriptions);
-    };
-    loadSubscriptions();
-  }, [getToken, userId]);
+    if (isSignedIn) {
+      return router.push("/dashboard");
+    }
+  }, [isSignedIn, router]);
 
   return (
-    <main>
-      <ul>
-        {subscriptions.map((subscription: Subscription) => (
-          <li key={subscription.id}>{subscription.name}</li>
-        ))}
-      </ul>
-      <UserButton />
-    </main>
+    <>
+      <SignedOut>
+        <Hero />
+      </SignedOut>
+    </>
   );
 }

@@ -379,7 +379,13 @@ export default function Home() {
         </ul>
       )}
 
-      <Modal isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen}>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        setIsOpen={(value) => {
+          setIsDeleteModalOpen(value);
+          setSelectedSubscription(undefined);
+        }}
+      >
         <div className="mt-8 space-y-4">
           <p className="font-bold">
             Are you sure you want to delete this subscription?

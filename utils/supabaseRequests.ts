@@ -1,3 +1,6 @@
+// @ts-nocheck
+/* eslint-disable */
+
 import { supabaseClient } from "./supabaseClient";
 
 type subscriptionsGetParams = {

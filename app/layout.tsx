@@ -20,8 +20,10 @@ export default function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <Header />
-          <main className="flex-1 bg-base-200 p-10">{children}</main>
-          <Footer />
+          <div className="flex flex-col h-full justify-between">
+            <main className="flex-1 bg-base-200 p-10">{children}</main>
+            <Footer />
+          </div>
         </body>
       </html>
     </ClerkProvider>

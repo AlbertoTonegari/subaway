@@ -1,24 +1,33 @@
 "use client";
 import Image from "next/image";
-import { Database } from "@/types/supabase";
 import { Edit, Trash } from "lucide-react";
 
 interface CardProps {
+  id?: string;
   image: string;
   title: string;
   description: string;
   link: string;
   date: string;
   currency: string;
+  amount: number;
+  period: string;
+  setIsOpen?: (isOpen: boolean, subscription: any) => void;
+  setIsDeleteOpen?: (isOpen: boolean, subscription: any) => void;
 }
 
 const Card = ({
+  id,
   title,
   description,
   link,
   image,
   date,
   currency,
+  amount,
+  period,
+  setIsOpen,
+  setIsDeleteOpen,
 }: CardProps) => {
   return (
     <div className="card w-96 shadow-xl p-2">
@@ -49,6 +58,20 @@ const Card = ({
             data-tooltip-id="delete"
             data-tooltip-content="Delete subscription"
             className="btn text-error"
+            onClick={() => {
+              setIsDeleteOpen &&
+                setIsDeleteOpen(true, {
+                  id,
+                  title,
+                  description,
+                  link,
+                  amount,
+                  currency,
+                  image,
+                  period,
+                  date,
+                });
+            }}
           >
             <Trash />
           </button>
@@ -56,6 +79,20 @@ const Card = ({
             data-tooltip-id="edit"
             data-tooltip-content="Edit subscription"
             className="btn text-info"
+            onClick={() =>
+              setIsOpen &&
+              setIsOpen(true, {
+                id,
+                title,
+                description,
+                link,
+                amount,
+                currency,
+                image,
+                period,
+                date,
+              })
+            }
           >
             <Edit />
           </button>

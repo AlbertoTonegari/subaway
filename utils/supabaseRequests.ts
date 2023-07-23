@@ -27,11 +27,60 @@ export const getSubscriptions = async ({
   if (!userId || !token) {
     throw new Error("Missing userId or token");
   }
+
   const supabase = await supabaseClient(token);
   const { data: subscriptions, error } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("user_id", userId);
+  if (error) {
+    throw error;
+  }
+
+  return subscriptions;
+};
+
+export const updateSubscription = async ({ userId, token, subscription }) => {
+  if (!userId || !token) {
+    throw new Error("Missing userId or token");
+  }
+
+  const supabase = await supabaseClient(token);
+  const { data: subscriptions, error } = await supabase
+    .from("subscriptions")
+    .update({
+      title: subscription.title,
+      amount: subscription.amount,
+      currency: subscription.currency,
+      description: subscription.description,
+      link: subscription.link,
+      image: subscription.image,
+      period: subscription.period,
+      date: subscription.date,
+    })
+    .eq("id", subscription.id)
+    .select("*");
+
+  if (error) {
+    throw error;
+  }
+
+  return subscriptions;
+};
+
+export const deleteSubscription = async ({ userId, token, subscriptionId }) => {
+  if (!userId || !token) {
+    throw new Error("Missing userId or token");
+  }
+
+  const supabase = await supabaseClient(token);
+  const { data: subscriptions, error } = await supabase
+    .from("subscriptions")
+    .delete()
+    .eq("id", subscriptionId)
+    .eq("user_id", userId)
+    .single();
+
   if (error) {
     throw error;
   }
@@ -48,7 +97,7 @@ export const createSubscription = async ({
     throw new Error("Missing userId or token");
   }
   const supabase = await supabaseClient(token);
-  const { data: subscriptions, error } = await supabase
+  const { data, error } = await supabase
     .from("subscriptions")
     .insert({
       user_id: userId,
@@ -60,10 +109,12 @@ export const createSubscription = async ({
       image: subscription.image,
       period: subscription.period,
       date: subscription.date,
-    });
+    })
+    .select("*");
+
   if (error) {
     throw error;
   }
 
-  return subscriptions;
+  return data;
 };

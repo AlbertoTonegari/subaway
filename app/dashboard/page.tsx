@@ -7,7 +7,9 @@ import "react-toastify/dist/ReactToastify.css";
 
 import {
   createSubscription,
+  deleteSubscription,
   getSubscriptions,
+  updateSubscription,
 } from "../../utils/supabaseRequests";
 import { Card, Modal, Select } from "@/components";
 import { PlusCircle } from "lucide-react";
@@ -23,6 +25,11 @@ interface Subscription {
   link: string | null;
   name: string;
   updated_at: string | null;
+  amount: number;
+  currency: string;
+  date: string;
+  period: string;
+  image: string;
   user_id: string;
 }
 
@@ -46,7 +53,10 @@ export default function Home() {
   const [subscriptionsLoading, setSubscriptionsLoading] = useState(true);
   const { userId, getToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [imageData, setImageData] = useState("");
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<Subscription>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const {
     register,
@@ -60,33 +70,51 @@ export default function Home() {
   });
 
   const onSubmit = async (data: FormData) => {
-    setCreateSubscriptionLoading(true);
-    const { title, description, link, image, date, period, amount, currency } =
-      data;
-    const selectedFile = image[0];
+    if (isEditMode) {
+      const {
+        title,
+        description,
+        link,
+        image,
+        date,
+        period,
+        amount,
+        currency,
+      } = data;
+      const selectedFile = image[0];
+      const getImageBase64 = (
+        file: File
+      ): Promise<string | ArrayBuffer | null> => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            resolve(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+      let imageBase: string | ArrayBuffer | null = "";
+      if (selectedFile) {
+        imageBase = await getImageBase64(selectedFile);
+      }
+      const token = await getToken({ template: "supabase" });
+      const updatedSubb = {
+        id: selectedSubscription?.id,
+        title,
+        description,
+        amount,
+        currency,
+        link,
+        image: imageBase === "" ? selectedSubscription?.image : imageBase,
+        date,
+        period,
+      };
 
-    const getImageBase64 = (
-      file: File
-    ): Promise<string | ArrayBuffer | null> => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          resolve(e.target.result);
-        };
-        reader.readAsDataURL(file);
-      });
-    };
-    let imageBase: string | ArrayBuffer | null = "";
-    if (selectedFile) {
-      imageBase = await getImageBase64(selectedFile);
-    }
-    const token = await getToken({ template: "supabase" });
-
-    try {
-      await createSubscription({
+      const updatedData = await updateSubscription({
         userId,
         token,
         subscription: {
+          id: selectedSubscription?.id ?? "",
           title,
           description,
           amount,
@@ -97,31 +125,75 @@ export default function Home() {
           period,
         },
       });
+      const newSubscriptions = subscriptions.map((subscription) => {
+        if (subscription.id === updatedData[0].id) {
+          return updatedData[0];
+        }
+        return subscription;
+      });
+      setSubscriptions(newSubscriptions);
+      toast.success("Subscription updated");
+    } else {
+      setCreateSubscriptionLoading(true);
+      const {
+        title,
+        description,
+        link,
+        image,
+        date,
+        period,
+        amount,
+        currency,
+      } = data;
+      const selectedFile = image[0];
 
-      setSubscriptions((prev) => [
-        ...prev,
-        {
-          title,
-          description,
-          link,
-          date:
-            date.getFullYear() + "-" + date.getMonth() + "-" + date.getDay(),
-          period,
-          amount,
-          currency,
-          image: imageBase,
-          id: uuidv4(),
-          user_id: userId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
+      const getImageBase64 = (
+        file: File
+      ): Promise<string | ArrayBuffer | null> => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            resolve(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+      let imageBase: string | ArrayBuffer | null = "";
+      if (selectedFile) {
+        imageBase = await getImageBase64(selectedFile);
+      }
+      const token = await getToken({ template: "supabase" });
 
-      reset();
-    } catch (error) {
-      toast.error("Error creating subscription");
-    } finally {
-      setCreateSubscriptionLoading(false);
+      try {
+        const data = await createSubscription({
+          userId,
+          token,
+          subscription: {
+            title,
+            description,
+            amount,
+            currency,
+            link,
+            image: imageBase,
+            date,
+            period,
+          },
+        });
+        console.log("DATA", data);
+        setSubscriptions((prev) => [
+          ...prev,
+          {
+            ...data[0],
+          },
+        ]);
+
+        reset();
+      } catch (error) {
+        toast.error("Error creating subscription");
+      } finally {
+        toast.success("Subscription created");
+        setCreateSubscriptionLoading(false);
+      }
     }
   };
 
@@ -149,6 +221,17 @@ export default function Home() {
     );
   }
 
+  const handleEditCard = (isOpen: boolean, subscription: any) => {
+    setIsOpen(isOpen);
+    setIsEditMode(true);
+    setSelectedSubscription(subscription);
+  };
+
+  const handleDeleteCard = async (isOpen: boolean, subscription: any) => {
+    setIsDeleteModalOpen(isOpen);
+    setSelectedSubscription(subscription);
+  };
+
   return (
     <>
       <div className="flex justify-center items-center">
@@ -165,13 +248,18 @@ export default function Home() {
         <Modal
           isOpen={isOpen}
           setIsOpen={(value) => {
-            if (!value) clearErrors();
+            if (!value) {
+              clearErrors();
+              reset();
+              setSelectedSubscription(undefined);
+            }
             setIsOpen(value);
           }}
         >
           <form onSubmit={handleSubmit(onSubmit)}>
             <div>
               <input
+                defaultValue={selectedSubscription?.title ?? ""}
                 placeholder="Add name..."
                 className="mt-8 input input-bordered w-full"
                 {...register("title")}
@@ -181,6 +269,7 @@ export default function Home() {
 
             <div>
               <textarea
+                defaultValue={selectedSubscription?.description ?? ""}
                 placeholder="Add description..."
                 className="textarea textarea-bordered resize-none w-full mt-4"
                 {...register("description")}
@@ -190,14 +279,17 @@ export default function Home() {
 
             <div>
               <textarea
+                defaultValue={selectedSubscription?.link ?? ""}
                 placeholder="Add Link..."
                 className="textarea textarea-bordered resize-none w-full mt-2 mb-2"
                 {...register("link")}
               />
               <p className="text-error">{errors.link?.message}</p>
             </div>
+
             <div>
               <input
+                defaultValue={selectedSubscription?.amount ?? ""}
                 type="text"
                 placeholder="Add amount..."
                 className="w-full mb-4 p-4 rounded-md input-bordered input"
@@ -208,6 +300,7 @@ export default function Home() {
 
             <div>
               <select
+                defaultValue={selectedSubscription?.currency ?? ""}
                 className="select w-full select-bordered mb-4"
                 {...register("currency")}
               >
@@ -227,6 +320,7 @@ export default function Home() {
 
             <div>
               <select
+                defaultValue={selectedSubscription?.period}
                 className="select w-full select-bordered mb-4"
                 {...register("period")}
               >
@@ -239,6 +333,7 @@ export default function Home() {
 
             <div>
               <input
+                defaultValue={selectedSubscription?.date}
                 type="date"
                 className="w-full mb-4 p-4 rounded-md input-bordered input"
                 {...register("date")}
@@ -246,15 +341,21 @@ export default function Home() {
               <p className="text-error">{errors.date?.message}</p>
             </div>
 
-            <button
-              disabled={createSubscriptionLoading}
-              className="btn btn-primary btn-block normal-case"
-            >
-              {createSubscriptionLoading && (
-                <span className="loading loading-spinner"></span>
-              )}
-              Add record
-            </button>
+            {isEditMode ? (
+              <button className="btn btn-primary btn-block normal-case">
+                Save
+              </button>
+            ) : (
+              <button
+                disabled={createSubscriptionLoading}
+                className="btn btn-primary btn-block normal-case"
+              >
+                {createSubscriptionLoading && (
+                  <span className="loading loading-spinner"></span>
+                )}
+                Add
+              </button>
+            )}
           </form>
         </Modal>
       </div>
@@ -265,14 +366,66 @@ export default function Home() {
       ) : (
         <ul className="flex justify-center xl:justify-normal flex-wrap gap-4 mt-8 ">
           {subscriptions.map((subscription: Subscription) => (
-            <Card key={subscription.id} {...subscription} />
+            <Card
+              setIsOpen={handleEditCard}
+              setIsDeleteOpen={handleDeleteCard}
+              key={subscription.id}
+              {...subscription}
+            />
           ))}
         </ul>
       )}
 
+      <Modal isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen}>
+        <div className="mt-8 space-y-4">
+          <p className="font-bold">
+            Are you sure you want to delete this subscription?
+          </p>
+          <div className="flex justify-between">
+            <button
+              className="btn w-20 btn-error"
+              onClick={async () => {
+                const token = await getToken({ template: "supabase" });
+                try {
+                  await deleteSubscription({
+                    userId,
+                    token,
+                    subscriptionId: selectedSubscription.id,
+                  });
+                  const newSubscriptions = subscriptions.filter(
+                    (subscription) => {
+                      return selectedSubscription.id !== subscription.id;
+                    }
+                  );
+                  toast.success("Subscription deleted");
+                  setSubscriptions(newSubscriptions);
+                  setSelectedSubscription(undefined);
+                } catch (error) {
+                  toast.error("Error deleting subscription");
+                } finally {
+                  setIsDeleteModalOpen(false);
+                }
+              }}
+            >
+              Yes
+            </button>
+            <button
+              className="btn w-20"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setSelectedSubscription(undefined);
+              }}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <Tooltip id="add-subb" />
       <Tooltip id="edit" />
       <Tooltip id="delete" />
+
       <ToastContainer
         theme={localStorage.getItem("theme") ?? "light"}
         position="bottom-right"

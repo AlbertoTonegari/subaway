@@ -30,16 +30,6 @@ const Card = ({
   setIsOpen,
   setIsDeleteOpen,
 }: CardProps) => {
-  const nextPayment = useMemo(() => {
-    const newDate = new Date(date);
-    if (period.toLowerCase() === "monthly") {
-      newDate.setMonth(newDate.getMonth() + 1);
-    } else if (period.toLowerCase() === "yearly") {
-      newDate.setFullYear(newDate.getFullYear() + 1);
-    }
-    return newDate.toISOString().slice(0, 10); // Format the date back to YYYY-MM-DD
-  }, [date, period]);
-
   return (
     <div className="card w-96 shadow-xl p-2">
       <figure>
@@ -57,9 +47,8 @@ const Card = ({
         <a target="_blank" rel="noopener noreferrer" href={link}>
           Link: {link}
         </a>
-        <p>Registered: {date}</p>
+        <p className="font-semibold">Registered: {date}</p>
         <p className="font-semibold">Cycle: {period}</p>
-        <p className="font-semibold">Next payment: {nextPayment}</p>
         <p className="font-semibold">
           Amount: {currency} {amount}
         </p>

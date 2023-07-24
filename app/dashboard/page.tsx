@@ -1,5 +1,4 @@
 // @ts-nocheck
-/* eslint-disable */
 "use client";
 
 import { UserButton, useAuth } from "@clerk/nextjs";
@@ -208,11 +207,13 @@ export default function Home() {
         const subscriptions = await getSubscriptions({ userId, token });
         setSubscriptions(subscriptions);
       } catch (error) {
-        toast.error("Error loading subscriptions");
+        console.error(error);
+        toast.error("Error loading subscriptions", error);
       } finally {
         setSubscriptionsLoading(false);
       }
     };
+    if (!userId) return;
     loadSubscriptions();
   }, [getToken, userId]);
 

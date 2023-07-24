@@ -1,5 +1,4 @@
 // @ts-nocheck
-/* eslint-disable */
 "use client";
 
 import { UserButton, useAuth } from "@clerk/nextjs";

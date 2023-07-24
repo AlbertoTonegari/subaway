@@ -73,6 +73,7 @@ export default function Home() {
 
   const onSubmit = async (data: FormData) => {
     if (isEditMode) {
+      setCreateSubscriptionLoading(true);
       const {
         title,
         description,
@@ -116,17 +117,10 @@ export default function Home() {
         userId,
         token,
         subscription: {
-          id: selectedSubscription?.id ?? "",
-          title,
-          description,
-          amount,
-          currency,
-          link,
-          image: imageBase,
-          date,
-          period,
+          ...updatedSubb,
         },
       });
+
       const newSubscriptions = subscriptions.map((subscription) => {
         if (subscription.id === updatedData[0].id) {
           return updatedData[0];
@@ -134,6 +128,7 @@ export default function Home() {
         return subscription;
       });
       setSubscriptions(newSubscriptions);
+      setCreateSubscriptionLoading(false);
       toast.success("Subscription updated");
     } else {
       setCreateSubscriptionLoading(true);
@@ -346,7 +341,13 @@ export default function Home() {
             </div>
 
             {isEditMode ? (
-              <button className="btn btn-primary btn-block normal-case">
+              <button
+                disabled={createSubscriptionLoading}
+                className="btn btn-primary btn-block normal-case"
+              >
+                {createSubscriptionLoading && (
+                  <span className="loading loading-spinner"></span>
+                )}
                 Save
               </button>
             ) : (

@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { Edit, Trash } from "lucide-react";
 import { useMemo } from "react";
+import { format } from "date-fns";
 
 interface CardProps {
   id?: string;
@@ -47,7 +48,9 @@ const Card = ({
         <a target="_blank" rel="noopener noreferrer" href={link}>
           Link: {link}
         </a>
-        <p className="font-semibold">Registered: {date}</p>
+        <p className="font-semibold">
+          Registered: {format(new Date(date), "MM/dd/yyyy")}
+        </p>
         <p className="font-semibold">Cycle: {period}</p>
         <p className="font-semibold">
           Amount: {currency} {amount}

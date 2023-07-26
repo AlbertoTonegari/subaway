@@ -331,7 +331,9 @@ export default function Home() {
             </div>
 
             <div>
+              <label htmlFor="date">Select registered date</label>
               <input
+                id="date"
                 defaultValue={selectedSubscription?.date}
                 type="date"
                 className="w-full mb-4 p-4 rounded-md input-bordered input"
